@@ -49,6 +49,7 @@ symbols = {
 if mode == "dev":
     def run(updater):
         updater.start_polling()
+        updater.idle()
 elif mode == "prod":
     def run(updater):
         PORT = int(os.environ.get("PORT", "8443"))
@@ -59,6 +60,7 @@ elif mode == "prod":
                               port=PORT,
                               url_path=teletoken,
                               webhook_url="https://{}.herokuapp.com/{}".format(HEROKU_APP_NAME, teletoken))
+        updater.idle()
 else:
     logger.error("No MODE specified!")
     sys.exit(1)
