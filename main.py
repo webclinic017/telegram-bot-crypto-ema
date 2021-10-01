@@ -57,7 +57,7 @@ elif mode == "prod":
         print(PORT)
         updater.start_webhook(listen="0.0.0.0",
                               port=PORT,
-                              url_path=teletoken
+                              url_path=teletoken,
                               webhook_url="https://{}.herokuapp.com/{}".format(HEROKU_APP_NAME, teletoken))
 else:
     logger.error("No MODE specified!")
