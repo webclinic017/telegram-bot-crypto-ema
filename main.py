@@ -40,10 +40,9 @@ emaLongNumber = 13
 
 ### Save State
 symbols = {
-    "ETHUSDT":0,
-    "BNBUSDT":0,
+    "SHIBUSDT":0,
+    "BTCUSDT":0,
 }
-
 
 ### Telegram Response
 if mode == "dev":
@@ -97,22 +96,24 @@ def checkPrice(update, context):
     logger.info(message)
     update.message.reply_text(message)
 def routine(context: CallbackContext):
+    keyInterval = ['30m', '1h', '4h']
     for coin in symbols:
-        cross, lastPrice = checkCross(coin)
-        if(cross):
-            if(symbols[coin] == 0):
-                message = "%s EMA Crossed, Last Price %s"%(coin, lastPrice)
-                logger.info("EMA Crossed")
-                symbols[coin] = 1
-                # send message to all users
-                for keys in r.keys(pattern='*'):
-                    id = r.get(keys).decode("UTF-8")
-                    context.bot.send_message(chat_id=id, text=message)
+        for interval in keyInterval:
+            cross, lastPrice = checkCross(coin, interval)
+            if(cross):
+                if(symbols[coin] == 0):
+                    message = "%s EMA Crossed on %s Interval, Last Price %s"%(coin, interval, lastPrice)
+                    logger.info("EMA Crossed")
+                    symbols[coin] = 1
+                    # send message to all users
+                    for keys in r.keys(pattern='*'):
+                        id = r.get(keys).decode("UTF-8")
+                        context.bot.send_message(chat_id=id, text=message)
+                else:
+                    logger.info("%s EMA Crossed but already announced"%coin)
             else:
-                logger.info("%s EMA Crossed but already announced"%coin)
-        else:
-            symbols[coin] = 0
-            logger.info("%s EMA No Cross"%coin)
+                symbols[coin] = 0
+                logger.info("%s EMA No Cross"%coin)
 def startTele():
     """Start the bot."""
     # Create the Updater and pass it your bot's token.
@@ -147,8 +148,8 @@ def setupBinance():
     return client
 def EMA(values, n):
     return pd.Series(values).ewm(span=n, adjust=False).mean()
-def checkCross(symbol):
-    data = client.get_historical_klines(symbol, Client.KLINE_INTERVAL_30MINUTE, "1 day ago UTC")
+def checkCross(symbol, interval):
+    data = client.get_historical_klines(symbol, interval, "1 week ago UTC")
     df = pd.DataFrame(data)
     df = df.loc[:,4].astype('float32')
     emaShort = EMA(df, emaShortNumber)
